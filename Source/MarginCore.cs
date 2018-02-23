@@ -208,7 +208,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
             _scrollMap = scrollMapFactoryService.Create(textView);
 
             var dte = (DTE2)vsServiceProvider.GetService(typeof(DTE));
-            _tfExt = dte.GetObject(typeof(TeamFoundationServerExt).FullName);
+            _tfExt = (TeamFoundationServerExt)dte.GetObject(typeof(TeamFoundationServerExt).FullName);
             Debug.Assert(_tfExt != null, "_tfExt is null.");
             _tfExt.ProjectContextChanged += OnTfExtProjectContextChanged;
 
