@@ -38,7 +38,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>AlekseyNagovitsyn.TfsPendingChangesMargin</RootNamespace>
     <AssemblyName>TfsPendingChangesMargin</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -67,19 +67,19 @@
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.TeamFoundation.Client">
-      <HintPath>..\..\..\Desktop\ref\Microsoft.TeamFoundation.Client.dll</HintPath>
+      <HintPath>..\..\..\..\..\Desktop\DLLs\Microsoft.TeamFoundation.Client.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.TeamFoundation.Common">
-      <HintPath>..\..\..\Desktop\ref\Microsoft.TeamFoundation.Common.dll</HintPath>
+      <HintPath>..\..\..\..\..\Desktop\DLLs\Microsoft.TeamFoundation.Common.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.TeamFoundation.Diff">
-      <HintPath>..\..\..\Desktop\ref\Microsoft.TeamFoundation.Diff.dll</HintPath>
+      <HintPath>..\..\..\..\..\Desktop\DLLs\Microsoft.TeamFoundation.Diff.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.TeamFoundation.VersionControl.Client">
-      <HintPath>..\..\..\Desktop\ref\Microsoft.TeamFoundation.VersionControl.Client.dll</HintPath>
+      <HintPath>..\..\..\..\..\Desktop\DLLs\Microsoft.TeamFoundation.VersionControl.Client.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.TeamFoundation.VersionControl.Common">
-      <HintPath>..\..\..\Desktop\ref\Microsoft.TeamFoundation.VersionControl.Common.dll</HintPath>
+      <HintPath>..\..\..\..\..\Desktop\DLLs\Microsoft.TeamFoundation.VersionControl.Common.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -87,17 +87,22 @@
     </Reference>
     <Reference Include="Microsoft.VisualStudio.OLE.Interop" />
     <Reference Include="Microsoft.VisualStudio.Services.Common">
-      <HintPath>..\..\..\Desktop\ref\Microsoft.VisualStudio.Services.Common.dll</HintPath>
+      <HintPath>..\..\..\..\..\Desktop\DLLs\Microsoft.VisualStudio.Services.Common.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.VisualStudio.Shell.12.0" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Framework, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Desktop\DLLs\Microsoft.VisualStudio.Shell.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.12.0">
+      <HintPath>..\..\..\..\..\Desktop\DLLs\Microsoft.VisualStudio.Shell.12.0.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Shell.Interop" />
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0" />
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.9.0" />
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.10.0" />
     <Reference Include="Microsoft.VisualStudio.TeamFoundation, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Desktop\ref\Microsoft.VisualStudio.TeamFoundation.dll</HintPath>
+      <HintPath>..\..\..\..\..\Desktop\DLLs\Microsoft.VisualStudio.TeamFoundation.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Text.Data, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
