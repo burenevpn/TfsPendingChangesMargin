@@ -16,12 +16,11 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
     /// IVsPackage interface and uses the registration attributes defined in the framework to 
     /// register itself and its components with the shell.
     /// </summary>
-    [PackageRegistration(UseManagedResourcesOnly = true)]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
     [Guid("9ec6e3aa-48cd-4953-b3b7-1a203bfded7f")]
     [ProvideOptionPage(typeof(GeneralSettingsPage), "Tfs Pending Changes Margin", "General", 0, 0, true)]
-    public sealed class TfsPendingChangesMarginPackage : Package
-    {
+    public sealed class TfsPendingChangesMarginPackage : AsyncPackage {
         /// <summary>
         /// Returns the settings from the Tools|Options... dialog's Tfs Pending Changes Margin|General section
         /// </summary>
