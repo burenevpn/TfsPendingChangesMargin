@@ -24,13 +24,11 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace AlekseyNagovitsyn.TfsPendingChangesMargin
-{
+namespace AlekseyNagovitsyn.TfsPendingChangesMargin {
     /// <summary>
     /// The class which receives, processes and provides necessary data for <see cref="EditorMargin"/>.
     /// </summary>
-    internal sealed class MarginCore : IDisposable
-    {
+    internal sealed class MarginCore : IDisposable {
         #region Fields
 
         /// <summary>
@@ -123,40 +121,35 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// <summary>
         /// Gets the margin settings.
         /// </summary>
-        public MarginSettings MarginSettings
-        {
+        public MarginSettings MarginSettings {
             get { return _marginSettings; }
         }
 
         /// <summary>
         /// Determines whether the margin is enabled.
         /// </summary>
-        public bool IsEnabled
-        {
+        public bool IsEnabled {
             get { return _isEnabled; }
         }
 
         /// <summary>
         /// Gets the margin is activated.
         /// </summary>
-        public bool IsActivated
-        {
+        public bool IsActivated {
             get { return _isActivated; }
         }
 
         /// <summary>
         /// Gets the <see cref="ITextDocument"/> which is associated with current instance of <see cref="IWpfTextView"/>. 
         /// </summary>
-        public ITextDocument TextDocument
-        {
+        public ITextDocument TextDocument {
             get { return _textDoc; }
         }
 
         /// <summary>
         /// Gets the committed version of the <see cref="TextDocument"/> in the version control server. 
         /// </summary>
-        public Item VersionControlItem
-        {
+        public Item VersionControlItem {
             get { return _versionControlItem; }
         }
 
@@ -166,8 +159,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// <returns>
         /// Collection that contains the result of comparing the document's local file with his source control version.
         /// </returns>
-        public DiffLinesCollection GetChangedLines()
-        {
+        public DiffLinesCollection GetChangedLines() {
             return _cachedChangedLines;
         }
 
@@ -190,13 +182,11 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// <param name="vsServiceProvider">Visual Studio service provider.</param>
         /// <param name="formatMapService">Service that provides the <see cref="IEditorFormatMap"/>.</param>
         /// <param name="scrollMapFactoryService">Factory that creates or reuses an <see cref="IScrollMap"/> for an <see cref="ITextView"/>.</param>
-        public MarginCore(IWpfTextView textView, ITextDocumentFactoryService textDocumentFactoryService, SVsServiceProvider vsServiceProvider, IEditorFormatMapService formatMapService, IScrollMapFactoryService scrollMapFactoryService)
-        {
+        public MarginCore(IWpfTextView textView, ITextDocumentFactoryService textDocumentFactoryService, SVsServiceProvider vsServiceProvider, IEditorFormatMapService formatMapService, IScrollMapFactoryService scrollMapFactoryService) {
             Debug.WriteLine("Entering constructor.", Properties.Resources.ProductName);
 
             _textView = textView;
-            if (!textDocumentFactoryService.TryGetTextDocument(_textView.TextDataModel.DocumentBuffer, out _textDoc))
-            {
+            if (!textDocumentFactoryService.TryGetTextDocument(_textView.TextDataModel.DocumentBuffer, out _textDoc)) {
                 Debug.WriteLine("Can not retrieve TextDocument. Margin is disabled.", Properties.Resources.ProductName);
                 _isEnabled = false;
                 return;
@@ -208,7 +198,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
             _scrollMap = scrollMapFactoryService.Create(textView);
 
             var dte = (DTE2)vsServiceProvider.GetService(typeof(DTE));
-            _tfExt = dte.GetObject(typeof(TeamFoundationServerExt).FullName);
+            _tfExt = dte.GetObject(typeof(TeamFoundationServerExt).FullName) as TeamFoundationServerExt;
             Debug.Assert(_tfExt != null, "_tfExt is null.");
             _tfExt.ProjectContextChanged += OnTfExtProjectContextChanged;
 
@@ -218,8 +208,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public void Dispose()
-        {
+        public void Dispose() {
             if (_isDisposed)
                 return;
 
@@ -238,10 +227,8 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// Get a committed text.
         /// </summary>
         /// <returns>Original text from the <see cref="VersionControlItem"/>.</returns>
-        public string GetOriginalText()
-        {
-            lock (_versionControlItemStreamLockObject)
-            {
+        public string GetOriginalText() {
+            lock (_versionControlItemStreamLockObject) {
                 var encoding = Encoding.GetEncoding(_versionControlItem.Encoding);
                 string text = ReadText(_versionControlItemStream, encoding);
                 return text;
@@ -254,8 +241,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// <param name="diffChange">Information about a specific difference between two sequences.</param>
         /// <param name="removeLastLineTerminator">Remove line terminator for the last line of the returned text, if line terminator is present.</param>
         /// <returns>Original text from the <see cref="IDiffChange"/>.</returns>
-        public string GetOriginalText(IDiffChange diffChange, bool removeLastLineTerminator)
-        {
+        public string GetOriginalText(IDiffChange diffChange, bool removeLastLineTerminator) {
             if (diffChange.ChangeType == DiffChangeType.Insert)
                 return string.Empty;
 
@@ -269,18 +255,15 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// <param name="endLine">End line number. Inclusive lower bound.</param>
         /// <param name="removeLastLineTerminator">Remove line terminator for the last line of the returned text, if line terminator is present.</param>
         /// <returns>Original text from the specified range.</returns>
-        public string GetOriginalText(int startLine, int endLine, bool removeLastLineTerminator)
-        {
+        public string GetOriginalText(int startLine, int endLine, bool removeLastLineTerminator) {
             IEnumerable<string> lines;
-            lock (_versionControlItemStreamLockObject)
-            {
+            lock (_versionControlItemStreamLockObject) {
                 var encoding = Encoding.GetEncoding(_versionControlItem.Encoding);
                 lines = ReadLines(_versionControlItemStream, encoding).Skip(startLine).Take(endLine - startLine + 1);
             }
 
             string text = string.Join(string.Empty, lines);
-            if (removeLastLineTerminator)
-            {
+            if (removeLastLineTerminator) {
                 if (text.EndsWith("\r\n")) // Windows line terminator (CRLF)
                     text = text.Remove(text.Length - 2);
                 else if (text.EndsWith("\n")) // Unix line terminator (LF only)
@@ -294,8 +277,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// Get a local text.
         /// </summary>
         /// <returns>Text from the <see cref="TextDocument"/>.</returns>
-        public string GetModifiedText()
-        {
+        public string GetModifiedText() {
             ITextSnapshot textSnapshot = _textView.TextSnapshot;
             string text = textSnapshot.GetText();
             return text;
@@ -307,8 +289,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// <param name="diffChange">Information about a specific difference between two sequences.</param>
         /// <param name="removeLastLineTerminator">Remove line terminator for the last line of the returned text, if line terminator is present.</param>
         /// <returns>Modified text from the <see cref="IDiffChange"/>.</returns>
-        public string GetModifiedText(IDiffChange diffChange, bool removeLastLineTerminator)
-        {
+        public string GetModifiedText(IDiffChange diffChange, bool removeLastLineTerminator) {
             if (diffChange.ChangeType == DiffChangeType.Delete)
                 return string.Empty;
 
@@ -322,8 +303,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// <param name="endLine">End line number. Inclusive lower bound.</param>
         /// <param name="removeLastLineTerminator">Remove line terminator for the last line of the returned text, if line terminator is present.</param>
         /// <returns>Modified text from the specified range.</returns>
-        public string GetModifiedText(int startLine, int endLine, bool removeLastLineTerminator)
-        {
+        public string GetModifiedText(int startLine, int endLine, bool removeLastLineTerminator) {
             ITextSnapshot textSnapshot = _textView.TextSnapshot;
             ITextSnapshotLine startTextLine = textSnapshot.GetLineFromLineNumber(startLine);
             ITextSnapshotLine endTextLine = textSnapshot.GetLineFromLineNumber(endLine);
@@ -339,14 +319,11 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// <param name="stream">Readable stream.</param>
         /// <param name="encoding">Stream encoding.</param>
         /// <returns>Enumeration of text lines with line terminators (except the last line at the EOF).</returns>
-        private static IEnumerable<string> ReadLines(Stream stream, Encoding encoding)
-        {
+        private static IEnumerable<string> ReadLines(Stream stream, Encoding encoding) {
             stream.Position = 0;
-            using (var reader = new StreamReader(stream, encoding, false, 1024, true))
-            {
+            using (var reader = new StreamReader(stream, encoding, false, 1024, true)) {
                 string line;
-                while ((line = reader.ReadLine()) != null)
-                {
+                while ((line = reader.ReadLine()) != null) {
                     if (reader.EndOfStream)
                         yield return line;
                     else
@@ -361,11 +338,9 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// <param name="stream">Readable stream.</param>
         /// <param name="encoding">Stream encoding.</param>
         /// <returns>Stream content as string.</returns>
-        private static string ReadText(Stream stream, Encoding encoding)
-        {
+        private static string ReadText(Stream stream, Encoding encoding) {
             stream.Position = 0;
-            using (var reader = new StreamReader(stream, encoding, false, 1024, true))
-            {
+            using (var reader = new StreamReader(stream, encoding, false, 1024, true)) {
                 return reader.ReadToEnd();
             }
         }
@@ -376,10 +351,8 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// <param name="oldVersion">An old text version.</param>
         /// <param name="currentVersion">The current text version.</param>
         /// <returns>Returns <c>true</c> if there are changes between two versions.</returns>
-        private static bool AnyTextChanges(ITextVersion oldVersion, ITextVersion currentVersion)
-        {
-            for (; oldVersion != currentVersion; oldVersion = oldVersion.Next)
-            {
+        private static bool AnyTextChanges(ITextVersion oldVersion, ITextVersion currentVersion) {
+            for (; oldVersion != currentVersion; oldVersion = oldVersion.Next) {
                 if (oldVersion.Changes.Count > 0)
                     return true;
             }
@@ -394,15 +367,11 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// <param name="textSnapshot">The text snapshot.</param>
         /// <param name="lineNumber">The line number.</param>
         /// <param name="diffChangeInfo">Represents information about a specific difference between two sequences.</param>
-        private static void AddLineToDiffLinesCollection(DiffLinesCollection collection, ITextSnapshot textSnapshot, int lineNumber, IDiffChange diffChangeInfo)
-        {
+        private static void AddLineToDiffLinesCollection(DiffLinesCollection collection, ITextSnapshot textSnapshot, int lineNumber, IDiffChange diffChangeInfo) {
             ITextSnapshotLine line;
-            try
-            {
+            try {
                 line = textSnapshot.GetLineFromLineNumber(lineNumber);
-            }
-            catch (ArgumentOutOfRangeException ex)
-            {
+            } catch (ArgumentOutOfRangeException ex) {
                 string msg = string.Format("Line number {0} is out of range [0..{1}].", lineNumber, textSnapshot.LineCount);
                 throw new ArgumentOutOfRangeException(msg, ex);
             }
@@ -418,8 +387,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// <param name="modifiedStream">Modified stream.</param>
         /// <param name="modifiedEncoding">Encoding of modified stream.</param>
         /// <returns>A summary of the differences between two streams.</returns>
-        private DiffSummary GetDifference(Stream originalStream, Encoding originalEncoding, Stream modifiedStream, Encoding modifiedEncoding)
-        {
+        private DiffSummary GetDifference(Stream originalStream, Encoding originalEncoding, Stream modifiedStream, Encoding modifiedEncoding) {
             var diffOptions = new DiffOptions { UseThirdPartyTool = false };
 
             if (_marginSettings.IgnoreLeadingAndTrailingWhiteSpace)
@@ -443,8 +411,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// Raises the <see cref="MarginRedraw"/> event.
         /// </summary>
         /// <param name="reason">The reason of redrawing.</param>
-        private void RaiseMarginRedraw(MarginDrawReason reason)
-        {
+        private void RaiseMarginRedraw(MarginDrawReason reason) {
             var eventHandler = MarginRedraw;
             if (eventHandler != null)
                 eventHandler(this, new MarginRedrawEventArgs(_cachedChangedLines, reason));
@@ -454,8 +421,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// Raises the <see cref="ExceptionThrown"/> event.
         /// </summary>
         /// <param name="exception">The exception that was thrown.</param>
-        private void RaiseExceptionThrown(Exception exception)
-        {
+        private void RaiseExceptionThrown(Exception exception) {
             var eventHandler = ExceptionThrown;
             var eventArgs = new ExceptionThrownEventArgs(exception);
             if (eventHandler != null)
@@ -469,16 +435,14 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// Sets the activated state of the margin.
         /// </summary>
         /// <param name="marginIsActivated">The new activated state to assign to the margin.</param>
-        private void SetMarginActivated(bool marginIsActivated)
-        {
+        private void SetMarginActivated(bool marginIsActivated) {
             if (_isActivated == marginIsActivated)
                 return;
 
             _isActivated = marginIsActivated;
             Debug.WriteLine(string.Format("MarginActivity: {0} ({1})", marginIsActivated, _textDoc.FilePath), Properties.Resources.ProductName);
 
-            if (marginIsActivated)
-            {
+            if (marginIsActivated) {
                 _textView.LayoutChanged += OnTextViewLayoutChanged;
                 _textView.ZoomLevelChanged += OnTextViewZoomLevelChanged;
                 _textDoc.FileActionOccurred += OnTextDocFileActionOccurred;
@@ -489,11 +453,8 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
 
                 _versionControlItemWatcherCts = new CancellationTokenSource();
                 CancellationToken token = _versionControlItemWatcherCts.Token;
-                _versionControlItemWatcher = new Task(ObserveVersionControlItem, token, token);
-                _versionControlItemWatcher.Start();
-            }
-            else
-            {
+                _versionControlItemWatcher = Task.Run(async () => await ObserveVersionControlItem(token), token);
+            } else {
                 _textView.LayoutChanged -= OnTextViewLayoutChanged;
                 _textView.ZoomLevelChanged -= OnTextViewZoomLevelChanged;
                 _textDoc.FileActionOccurred -= OnTextDocFileActionOccurred;
@@ -510,18 +471,24 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// <summary>
         /// Refresh margin's data and redraw it.
         /// </summary>
-        private void UpdateMargin()
-        {
-            var task = new Task(() =>
-            {
-                lock (_drawLockObject)
-                {
-                    bool success = RefreshVersionControl();
-                    if (_isDisposed)
-                        return;
+        private void UpdateMargin() {
+            var task = new Task(() => {
+                bool success = RefreshVersionControl();
+                if (_isDisposed)
+                    return;
 
-                    SetMarginActivated(success);
-                    Redraw(false, MarginDrawReason.InternalReason);
+                if (!success) {
+                    lock (_drawLockObject) {
+                        _versionControl = null;
+                        _versionControlItem = null;
+                        SetMarginActivated(false);
+                        Redraw(false, MarginDrawReason.InternalReason);
+                    }
+                } else {
+                    lock (_drawLockObject) {
+                        _versionControlItem = null; // Reset as it belongs to the old versionControl
+                    }
+                    RefreshVersionControlItem(CancellationToken.None);
                 }
             });
 
@@ -536,11 +503,9 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// Returns <c>false</c>, if current text document (file) not associated with version control.
         /// Otherwise, returns <c>true</c>.
         /// </returns>
-        private bool RefreshVersionControl()
-        {
+        private bool RefreshVersionControl() {
             string tfsServerUriString = _tfExt.ActiveProjectContext.DomainUri;
-            if (string.IsNullOrEmpty(tfsServerUriString))
-            {
+            if (string.IsNullOrEmpty(tfsServerUriString)) {
                 _versionControl = null;
                 _versionControlItem = null;
                 return false;
@@ -548,77 +513,70 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
 
             TfsTeamProjectCollection tfsProjCollections = TfsTeamProjectCollectionFactory.GetTeamProjectCollection(new Uri(tfsServerUriString));
             _versionControl = (VersionControlServer)tfsProjCollections.GetService(typeof(VersionControlServer));
-            try
-            {
-                _versionControlItem = GetVersionControlItem();
-            }
-            catch (VersionControlItemNotFoundException)
-            {
-                _versionControlItem = null;
-                return false;
-            }
-            catch (TeamFoundationServiceUnavailableException)
-            {
-                _versionControlItem = null;
-                return false;
-            }
-
-            DownloadVersionControlItem();
             return true;
         }
 
         /// <summary>
         /// Observation over VersionControlItem up-dating at regular intervals.
         /// </summary>
-        /// <param name="cancellationTokenObject">A cancellation token for this method.</param>
-        private void ObserveVersionControlItem(object cancellationTokenObject)
-        {
-            var cancellationToken = (CancellationToken)cancellationTokenObject;
-
-            while (true)
-            {
-                try
-                {
+        /// <param name="cancellationToken">A cancellation token for this method.</param>
+        private async Task ObserveVersionControlItem(CancellationToken cancellationToken) {
+            while (true) {
+                try {
                     const int VersionControlItemObservationInterval = 30000;
-                    System.Threading.Thread.Sleep(VersionControlItemObservationInterval);
-
+                    await Task.Delay(VersionControlItemObservationInterval, cancellationToken);
                     if (cancellationToken.IsCancellationRequested)
                         break;
 
-                    lock (_drawLockObject)
-                    {
-                        Item versionControlItem;
-                        try
-                        {
-                            versionControlItem = GetVersionControlItem();
-                        }
-                        catch (VersionControlItemNotFoundException)
-                        {
-                            SetMarginActivated(false);
-                            Redraw(false, MarginDrawReason.InternalReason);
-                            break;
-                        }
-                        catch (TeamFoundationServiceUnavailableException)
-                        {
-                            continue;
-                        }
-
-                        if (cancellationToken.IsCancellationRequested)
-                            break;
-
-                        if (_versionControlItem == null || versionControlItem.CheckinDate != _versionControlItem.CheckinDate)
-                        {
-                            _versionControlItem = versionControlItem;
-                            DownloadVersionControlItem();
-                            Redraw(false, MarginDrawReason.VersionControlItemChanged);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
+                    if (!RefreshVersionControlItem(cancellationToken))
+                        break;
+                } catch (Exception ex) {
                     Debug.WriteLine("Unhandled exception in ObserveVersionControlItem: " + ex, Properties.Resources.ProductName);
                 }
             }
+        }
+
+        private bool RefreshVersionControlItem(CancellationToken cancellationToken) {
+            if (cancellationToken.IsCancellationRequested)
+                return false;
+
+            Item versionControlItem;
+
+            try {
+                versionControlItem = GetVersionControlItem(_versionControl, _textDoc.FilePath);
+            } catch (VersionControlItemNotFoundException) {
+                if (cancellationToken.IsCancellationRequested)
+                    return false;
+
+                lock (_drawLockObject) {
+                    SetMarginActivated(false);
+                    Redraw(false, MarginDrawReason.InternalReason);
+                }
+                return !cancellationToken.IsCancellationRequested;
+            } catch (TeamFoundationServiceUnavailableException) {
+                return !cancellationToken.IsCancellationRequested;
+            }
+
+            if (cancellationToken.IsCancellationRequested)
+                return false;
+
+            var currentVersionControlItem = _versionControlItem;
+            if (versionControlItem != null && (currentVersionControlItem == null || versionControlItem.CheckinDate != currentVersionControlItem.CheckinDate)) {
+                Stream versionControlItemStream = DownloadVersionControlItem(versionControlItem);
+                lock (_drawLockObject) {
+                    if (_versionControlItem == null)
+                        SetMarginActivated(true);
+
+                    if (ReferenceEquals(currentVersionControlItem, _versionControlItem) || _versionControlItem == null) {
+                        _versionControlItem = versionControlItem;
+                        _versionControlItemStream = versionControlItemStream;
+                    }
+
+                    Redraw(false, MarginDrawReason.VersionControlItemChanged);
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -627,17 +585,11 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// <returns>Committed version of a file in the version control server.</returns>
         /// <exception cref="VersionControlItemNotFoundException">The document file is not linked to version control.</exception>
         /// <exception cref="TeamFoundationServiceUnavailableException">Team Foundation Service unavailable.</exception>
-        private Item GetVersionControlItem()
-        {
-            string itemPath = _textDoc.FilePath;
-
+        private static Item GetVersionControlItem(VersionControlServer versionControl, string itemPath) {
             Workspace workspace;
-            try
-            {
-                workspace = _versionControl.GetWorkspace(itemPath);
-            }
-            catch (ItemNotMappedException ex)
-            {
+            try {
+                workspace = versionControl.GetWorkspace(itemPath);
+            } catch (ItemNotMappedException ex) {
                 string msg = string.Format("No workspace is found associated with the \"{0}\".", itemPath);
                 throw new VersionControlItemNotFoundException(msg, ex);
             }
@@ -646,13 +598,10 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
             if (pendingChanges.Length == 1 && pendingChanges[0].IsRename)
                 itemPath = pendingChanges[0].SourceServerItem;
 
-            try
-            {
+            try {
                 // Be careful, VersionControlServer.GetItem is slow.
-                return _versionControl.GetItem(itemPath, VersionSpec.Latest);
-            }
-            catch (VersionControlException ex)
-            {
+                return versionControl.GetItem(itemPath, VersionSpec.Latest);
+            } catch (VersionControlException ex) {
                 string msg = string.Format("Item not found in repository on path \"{0}\".", itemPath);
                 throw new VersionControlItemNotFoundException(msg, ex);
             }
@@ -661,18 +610,10 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// <summary>
         /// Download version control item for current text document to stream.
         /// </summary>
-        private void DownloadVersionControlItem()
-        {
-            if (_isDisposed)
-                return;
-
+        private static MemoryStream DownloadVersionControlItem(Item versionControlItem) {
             var stream = new MemoryStream();
-            _versionControlItem.DownloadFile().CopyTo(stream);
-
-            if (_isDisposed)
-                return;
-
-            _versionControlItemStream = stream;
+            versionControlItem.DownloadFile().CopyTo(stream);
+            return stream;
         }
 
         /// <summary>
@@ -680,36 +621,27 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// </summary>
         /// <param name="useCache">Use cached differences.</param>
         /// <param name="reason">The reason of redrawing.</param>
-        private void Redraw(bool useCache, MarginDrawReason reason)
-        {
-            try
-            {
+        private void Redraw(bool useCache, MarginDrawReason reason) {
+            try {
                 if (_isDisposed || _textView.IsClosed)
                     return;
 
-                if (!_isActivated)
-                {
+                if (!_isActivated) {
                     _cachedChangedLines.Clear();
                     RaiseMarginRedraw(reason);
                     return;
                 }
 
-                if (useCache)
-                {
+                if (useCache) {
                     RaiseMarginRedraw(reason);
                     return;
                 }
 
-                var task = new Task(() =>
-                {
-                    lock (_drawLockObject)
-                    {
-                        try
-                        {
+                var task = new Task(() => {
+                    lock (_drawLockObject) {
+                        try {
                             _cachedChangedLines = GetChangedLineNumbers();
-                        }
-                        catch (Exception ex)
-                        {
+                        } catch (Exception ex) {
                             RaiseExceptionThrown(ex);
                             return;
                         }
@@ -719,9 +651,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
                 });
 
                 task.Start();
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 RaiseExceptionThrown(ex);
             }
         }
@@ -733,8 +663,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// Collection that contains the result of comparing the document's local file with his source control version.
         /// <para/>Each element is a pair of key and value: the key is a line of text, the value is a type of difference.
         /// </returns>
-        private DiffLinesCollection GetChangedLineNumbers()
-        {
+        private DiffLinesCollection GetChangedLineNumbers() {
             Debug.Assert(_textDoc != null, "_textDoc is null.");
             Debug.Assert(_versionControl != null, "_versionControl is null.");
 
@@ -746,8 +675,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
             sourceStream.Write(textBytes, 0, textBytes.Length);
 
             DiffSummary diffSummary;
-            lock (_versionControlItemStreamLockObject)
-            {
+            lock (_versionControlItemStreamLockObject) {
                 diffSummary = GetDifference(
                     _versionControlItemStream,
                     Encoding.GetEncoding(_versionControlItem.Encoding),
@@ -756,27 +684,20 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
             }
 
             var dict = new DiffLinesCollection();
-            for (int i = 0; i < diffSummary.Changes.Length; i++)
-            {
+            for (int i = 0; i < diffSummary.Changes.Length; i++) {
                 var diff = new DiffChange(diffSummary.Changes[i]);
 
-                if (diff.ChangeType == DiffChangeType.Change)
-                {
-                    if (diff.OriginalLength >= diff.ModifiedLength)
-                    {
+                if (diff.ChangeType == DiffChangeType.Change) {
+                    if (diff.OriginalLength >= diff.ModifiedLength) {
                         int linesModified = diff.ModifiedLength;
-                        if (linesModified == 0)
-                        {
+                        if (linesModified == 0) {
                             diff.ChangeType = DiffChangeType.Delete;
                             int linesDeleted = diff.OriginalLength - diff.ModifiedLength;
                             Debug.Assert(linesDeleted > 0, "linesDeleted must be greater than zero.");
                         }
-                    }
-                    else
-                    {
+                    } else {
                         int linesModified = diff.OriginalLength;
-                        if (linesModified == 0)
-                        {
+                        if (linesModified == 0) {
                             diff.ChangeType = DiffChangeType.Insert;
                             int linesAdded = diff.ModifiedLength - diff.OriginalLength;
                             Debug.Assert(linesAdded > 0, "linesAdded must be greater than zero.");
@@ -784,13 +705,10 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
                     }
                 }
 
-                if (diff.ChangeType != DiffChangeType.Delete)
-                {
+                if (diff.ChangeType != DiffChangeType.Delete) {
                     for (int k = diff.ModifiedStart; k <= diff.ModifiedEnd; k++)
                         AddLineToDiffLinesCollection(dict, textSnapshot, k, diff);
-                }
-                else
-                {
+                } else {
                     AddLineToDiffLinesCollection(dict, textSnapshot, diff.ModifiedStart, diff);
                 }
             }
@@ -805,8 +723,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// </summary>
         /// <param name="sender">Event sender.</param>
         /// <param name="e">Event arguments.</param>
-        private void OnTextViewZoomLevelChanged(object sender, ZoomLevelChangedEventArgs e)
-        {
+        private void OnTextViewZoomLevelChanged(object sender, ZoomLevelChangedEventArgs e) {
             Redraw(true, MarginDrawReason.TextViewZoomLevelChanged);
         }
 
@@ -815,8 +732,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// </summary>
         /// <param name="sender">Event sender.</param>
         /// <param name="e">Event arguments.</param>
-        private void OnTextDocFileActionOccurred(object sender, TextDocumentFileActionEventArgs e)
-        {
+        private void OnTextDocFileActionOccurred(object sender, TextDocumentFileActionEventArgs e) {
             Redraw(false, MarginDrawReason.TextDocFileActionOccurred);
         }
 
@@ -825,8 +741,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// </summary>
         /// <param name="sender">Event sender.</param>
         /// <param name="e">Event arguments.</param>
-        private void OnTextViewLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
-        {
+        private void OnTextViewLayoutChanged(object sender, TextViewLayoutChangedEventArgs e) {
             if (AnyTextChanges(e.OldViewState.EditSnapshot.Version, e.NewViewState.EditSnapshot.Version))
                 Redraw(false, MarginDrawReason.TextViewTextChanged);
             else if (e.VerticalTranslation || e.NewOrReformattedSpans.Count > 0)
@@ -838,8 +753,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// </summary>
         /// <param name="sender">Event sender.</param>
         /// <param name="e">Event arguments.</param>
-        private void OnFormatMapFormatMappingChanged(object sender, FormatItemsEventArgs e)
-        {
+        private void OnFormatMapFormatMappingChanged(object sender, FormatItemsEventArgs e) {
             _marginSettings.Refresh();
             Redraw(true, MarginDrawReason.EditorFormatMapChanged);
         }
@@ -847,8 +761,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// <summary>
         /// Event handler called when settings are changed on the <see cref="Settings.GeneralSettingsPage"/>.
         /// </summary>
-        private void OnGeneralSettingsChanged()
-        {
+        private void OnGeneralSettingsChanged() {
             _marginSettings.Refresh();
 
             // Note that because the IgnoreLeadingAndTrailingWhiteSpace setting can change which
@@ -861,34 +774,15 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// </summary>
         /// <param name="sender">Event sender.</param>
         /// <param name="e">Event arguments.</param>
-        private void OnVersionControlCommitCheckin(object sender, CommitCheckinEventArgs e)
-        {
+        private void OnVersionControlCommitCheckin(object sender, CommitCheckinEventArgs e) {
             if (_versionControlItem == null)
                 return;
 
             string serverItem = _versionControlItem.ServerItem;
             bool itemCommitted = e.Changes.Any(change => change.ServerItem == serverItem);
-            if (itemCommitted)
-            {
-                var task = new Task(() =>
-                {
-                    lock (_drawLockObject)
-                    {
-                        try
-                        {
-                            _versionControlItem = GetVersionControlItem();
-                            DownloadVersionControlItem();
-                            Redraw(false, MarginDrawReason.VersionControlItemChanged);
-                        }
-                        catch (VersionControlItemNotFoundException)
-                        {
-                            SetMarginActivated(false);
-                            Redraw(false, MarginDrawReason.InternalReason);
-                        }
-                        catch (TeamFoundationServiceUnavailableException)
-                        {
-                        }
-                    }
+            if (itemCommitted) {
+                var task = new Task(() => {
+                    RefreshVersionControlItem(CancellationToken.None);
                 });
 
                 task.Start();
@@ -900,8 +794,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// </summary>
         /// <param name="sender">Event sender.</param>
         /// <param name="e">Event arguments.</param>
-        private void OnTfExtProjectContextChanged(object sender, EventArgs e)
-        {
+        private void OnTfExtProjectContextChanged(object sender, EventArgs e) {
             UpdateMargin();
         }
 
@@ -911,8 +804,7 @@ namespace AlekseyNagovitsyn.TfsPendingChangesMargin
         /// </summary>
         /// <param name="sender">Event sender.</param>
         /// <param name="e">Event arguments.</param>
-        private void OnScrollMapMappingChanged(object sender, EventArgs e)
-        {
+        private void OnScrollMapMappingChanged(object sender, EventArgs e) {
             Redraw(true, MarginDrawReason.ScrollMapMappingChanged);
         }
 
